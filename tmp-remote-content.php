@@ -19,7 +19,7 @@ use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 $myUpdateChecker = PucFactory::buildUpdateChecker(
 	'https://licensing.themuseumplatform.com/license/tmp-remote-content',
 	__FILE__, //Full path to the main plugin file or functions.php.
-	'tmp-remote-collections'
+	'tmp-remote-content'
 ); 
 
  
