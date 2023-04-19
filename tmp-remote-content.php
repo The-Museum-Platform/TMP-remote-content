@@ -12,6 +12,17 @@
  *      https://braadmartin.com/saving-shortcode-data-in-meta-in-wordpress/
  * plus some independent thought
  */
+ 
+ require 'lib/plugin-update-checker-5.0/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+	'https://licensing.themuseumplatform.com/license/tmp-remote-content',
+	__FILE__, //Full path to the main plugin file or functions.php.
+	'tmp-remote-collections'
+); 
+
+ 
 require_once('tmp-remote-content.class.php');
 $tmpRC = new TmpRestContent();
 $tmpRC->add_shortcode();
