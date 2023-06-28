@@ -29,6 +29,12 @@ This is the default way in which you wish to render shortcodes. If left unset th
 See below for details on how to name templates and refer to them here.
 The default template is entirely optional.
 
+### Replacement patterns
+
+Content may be returned from the remote endpoint with links/references to the URLs at the source site. You can do simple replacement here (it currently uses "str_replace" for simplicity).
+Put one pair of "find" and "replace" values per line, separated by a pipe ("|"). This will be used to split them and do the replacement. Put in multiple lines if you like.
+
+
 ### Simplest shortcode usage
 
 You can use the Gutenberg "shortcode" block to insert the code, or the classic editor. The shortcode in its simplest form looks something like this:
