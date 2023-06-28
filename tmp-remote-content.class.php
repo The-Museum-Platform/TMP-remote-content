@@ -8,6 +8,7 @@
         private $plugin_url;
         private $search_results_path;
         private $single_record_path;
+        private $remote_content_replace_paths;
         private $rest_route;
         private $iiif_path;
         private $media_path;
@@ -18,6 +19,7 @@
             $this->plugin_url = plugins_url() . '/tmp-remote-content';
             $this->rest_route = get_option('tmp_remote_content_rest_route');
             $this->remote_content_template = "".get_option('tmp_remote_content_template');
+            $this->remote_content_replace_paths = $this->parse_replacements(get_option('tmp_remote_content_replace_paths'));
             add_action('admin_menu', array($this, 'add_menu_item'));
             add_action('admin_init', array($this, 'register_settings'));
             add_action( 'save_post', array($this, 'tmp_remote_clear_post_transients'), 10, 3 );
@@ -97,10 +99,34 @@
                 ob_start();
                 get_template_part( $template_path, null, $remote_content );
                 return  ob_get_clean();
-            }else{  //otherwise just return the rendered content of the post
-                return $remote_content->content->rendered;
+            }else{  //otherwise return the rendered content of the post, passing through any replacement pairs.
+                $c=$remote_content->content->rendered;
+                if(is_array($this->remote_content_replace_paths) && count($this->remote_content_replace_paths)>0){
+                    foreach($this->remote_content_replace_paths as $rep){
+                        $c = $this->filter_replace_path($rep['find'],$rep['replace'],$c);
+                    }
+                }
+                return $c;
             }
         }
+
+        function parse_replacements($fields) {
+            $reps_lines = preg_split ('/$\R?^/m', $fields);
+//            var_dump($fields);
+            $all_reps = [];
+            foreach($reps_lines as $reps_line) {
+                $reps = array_map('trim', explode('|', $reps_line));
+                if (count($reps) <> 2) continue;
+                $all_reps[] = $reps;
+            }
+            if (empty($all_reps)) return [];
+            $return_reps = [];
+            foreach($all_reps as $rep) {
+                array_push($return_reps,['find' => $rep[0], 'replace' => $rep[1]]);
+            }
+            return $return_reps;
+        }
+        
 
         //=====================================
         function validate_url($url)
@@ -117,6 +143,10 @@
             add_settings_section('tmp_remote_content_local_settings', 'Local setup', array($this, 'generate_settings_group_content'), 'tmp_remote_content_settings');
             register_setting('tmp_remote_content_local_settings', 'tmp_remote_content_template');
             add_settings_field('tmp_remote_content_template', 'Default template. A partial slug for a template file in a "tmp-remote" directory in the active (sub)theme. Template files must be named in the form "tmp-remote-&lt;partial slug&gt;.php". Leave empty to default to unaltered rendering', array($this, 'generate_settings_field_input_text'), 'tmp_remote_content_settings', 'tmp_remote_content_local_settings', array('field' => 'tmp_remote_content_template','default'=>""));
+
+            register_setting('tmp_remote_content_settings', 'tmp_remote_content_replace_paths');
+            add_settings_field('tmp_remote_content_replace_paths', 'Replacement patterns. One find/replace pair per line, which will be used in str_replace for the whole returned content. Use the format:<br />&lt;find&gt;|&lt;replace&gt;', array($this, 'generate_settings_field_input_textarea'), 'tmp_remote_content_settings', 'tmp_remote_content_local_settings', array('field' => 'tmp_remote_content_replace_paths'));
+
         }
 
         function add_menu_item()
@@ -153,6 +183,23 @@
             $width = '500px';
             echo sprintf('<input type="text" name="%s" id="%s" value="%s" style="width: %s" />', $field, $field, $value, $width);
         }
+        function generate_settings_field_input_textarea($args)
+        {
+            $field = $args['field'];
+            $value = get_option($field);
+            if (empty($value) && isset($args['default'])) $value = $args['default'];
+            echo sprintf('<textarea type="text" name="%s" id="%s" rows="5" style="width: 500px" />%s</textarea>', $field, $field, $value);
+    
+            if ($field == 'es_objects_presentation_facets') echo '<br /><small style="display: inline-block; padding-top: 5px">Formatted similarly to how ACF supports options for a group.<br />One per line in "&lt;facet_name&gt; : &lt;field_name&gt;" format. Optionally, this can be followed by a maximum count (size) of aggregation values thus: "&lt;facet_name&gt; : &lt;field_name&gt; : &lt;size&gt;".<br />You must specify a valid field name or everything will break.</small>';
+            if ($field == 'es_objects_datatypes') echo '<br /><small style="display: inline-block; padding-top: 5px">One entity name (@datatype.type) per line.</small>';
+        }
+    
+        function filter_replace_path($find, $replace, $content)
+        {
+            $newcontent = str_replace($find,$replace,$content);
+            return $newcontent;
+        }
+
 
     }
     
