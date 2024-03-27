@@ -12,6 +12,8 @@
         private $rest_route;
         private $iiif_path;
         private $media_path;
+		
+		public $remote_content_template;
 
         function __construct()
         {
