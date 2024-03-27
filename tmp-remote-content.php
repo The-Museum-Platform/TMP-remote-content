@@ -3,7 +3,7 @@
  * Plugin Name: The Museum Platform Remote Content shortcode
  * Plugin URI: https://themuseumplatform.com/
  * Description: Functionality to pull in WordPress content into any WordPress site with a shortcode. We like it best if it's pulling in TMP content but hey, whatever works for you!
- * Version: 0.1
+ * Version: 0.2
  * Author: Jeremy Ottevanger / The Museum Platform
  * 
  * created with inspiration and code from 
